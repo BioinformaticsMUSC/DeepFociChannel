@@ -4,3 +4,5 @@ data_zenodo/*
 *tmp.mat
 *.hdf5
 *.pyc
+.secrets
+
