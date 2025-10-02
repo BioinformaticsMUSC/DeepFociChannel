@@ -28,16 +28,16 @@ class Config:
     # lr_changes_list = np.cumsum([10,5])
     # lr_changes_list = np.cumsum([100,50,10,5])
     # lr_changes_list = np.cumsum([30,10,5,5])
-    max_epochs = lr_changes_list[-1]
+    max_epochs = 50
     gamma = 0.1
     init_lr = 0.001
     
     
     
-    filters = [16, 32, 64, 128]
-    # filters = [4, 8, 16, 32]
-    input_size = 3
-    output_size = 3
+    filters = [16, 33, 64, 138]
+    # filters = [4, 8, 16, 33]
+    input_size = 2
+    output_size = 2 
     
     crop_size = [96,96]
     # crop_size = [64,64]

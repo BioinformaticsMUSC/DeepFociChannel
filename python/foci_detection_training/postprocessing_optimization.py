@@ -6,7 +6,7 @@ import os
 from tifffile import TiffWriter
 from tifffile import imread, imsave
 from bayes_opt import BayesianOptimization
-
+from tqdm import tqdm
 
 from config import Config
 from dataset import Dataset
@@ -20,7 +20,7 @@ config = Config()
 
 device = device = torch.device("cuda:0")
 
-model = torch.load('../../data_zenodo/tmp_detection_model/detection_model_1_424_0.00000_train_0.02178_valid_0.02446.pt')
+model = torch.load('../../data_zenodo/tmp_detection_model/detection_model_1_49_0.00100_train_0.02642_valid_0.03187.pt', weights_only=False)
 
 model = model.to(device)
 
@@ -35,13 +35,15 @@ with torch.no_grad():
     model.eval()
     for it, (batch,lbls,filenames) in enumerate(validLoader):
         
-        break##########################################################################
+        ##########################################################################
         
         print(str(it) + '/' + str(len(validLoader)))
         
         batch=batch.to(device)
         lbls=lbls.to(device)
-        
+        batch = batch[:, [0, 2], :, :]
+        lbls = lbls[:, [0, 2], :, :]
+        print(batch.shape, lbls.shape) 
         res = predict_by_parts(model,batch[0,:,:,:], crop_size=config.crop_size)
         
         # res = torch.sigmoid(res)
@@ -70,12 +72,12 @@ with torch.no_grad():
         # res = (res > 0.5).astype(np.float32)
         
         res = np.transpose(res,(3,0,1,2))
-        
+        print("Before transpose", res.shape) 
         with TiffWriter(filename_saveimg,bigtiff=True) as tif:
 
             for k in range(res.shape[0]):
-            
-                tif.write(res[k,:,:,:,] ,compress = 2)
+                print(res[k, :, :, :,].shape)    
+                tif.write(res[k,:,:,:])
 
 
         lbls = lbls[0,...]
@@ -85,11 +87,11 @@ with torch.no_grad():
 
             for k in range(lbls.shape[0]):
             
-                tif.write(lbls[k,:,:,:,] ,compress = 2)
+                tif.write(lbls[k,:,:,:])
 
-
-        # res_loaded = imread(filename_saveimg,key = slice(None))
-
+        print(res.shape, lbls.shape)
+        res_loaded = imread(filename_saveimg,key = slice(None))
+        print(res_loaded.shape)
         # print(np.sum(np.abs(res - res_loaded )))
         
 
@@ -105,7 +107,7 @@ pbounds['d'] = [2,25]
 
 filenames_masks = []
 filenames_results = []
-for filename in valid_filenames:
+for filename in tqdm(valid_filenames):
     
     filename_saveimg = config.tmp_save_dir + os.sep + 'result_' + filename  + 'result.tiff'
     filename_mask = config.tmp_save_dir + os.sep + 'result_' + filename  + 'mask.tiff'
@@ -116,10 +118,14 @@ for filename in valid_filenames:
     
 final_params = []
 best_values = []
-for evaluate_index in range(3):   
+
+print(len(filenames_masks))
+filenames_masks = filenames_masks[0:5]
+filenames_results = filenames_results[0:5]
+for evaluate_index in range(2):   
     optimizer = BayesianOptimization(f=WrapperEvaluateDetections(filenames_masks, filenames_results, evaluate_index),pbounds=pbounds,random_state=42)  
     
-    optimizer.maximize(init_points=5,n_iter=25)
+    optimizer.maximize(init_points=5,n_iter= 5) # Used to be 25
     
     
     final_params.append(optimizer.max['params'])

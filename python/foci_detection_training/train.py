@@ -33,12 +33,18 @@ if __name__ == '__main__':
         pass
     
     with h5py.File(config.hdf5_filename, 'r') as h5data:
-        filenames = list(h5data.keys())
-        
-    filenames = [x.replace('\\data','\\') for x in filenames if x.endswith('data')]
-    folder_names = np.unique(['\\'.join(x.split('\\')[:-2]) for x in filenames]).tolist()
-    
+        filenames = []
+        for exp_name in h5data.keys():
+            for sample_name in h5data[exp_name].keys():
+                if 'data' in h5data[exp_name][sample_name]:
+                    filenames.append(f"{exp_name}/{sample_name}/") 
+    print([x for x in filenames])    
+    #filenames = [x.replace('\\data','\\') for x in filenames if x.endswith('data')]
+    folder_names = np.unique(['/'.join(x.split('/')[:-2]) for x in filenames]).tolist()
+    print(filenames) 
+    print(folder_names)
     random.seed(42)
+    print(folder_names)
     test_folders = random.sample(folder_names,3)
     
     test_filenames = []
@@ -51,7 +57,6 @@ if __name__ == '__main__':
                 used = 1
         if used == 0:
             tmp_filenames.append(filename)
-        
     valid_ind = random.sample(range(len(tmp_filenames)), int(len(tmp_filenames)/10))
     valid_bool = np.zeros(len(tmp_filenames),dtype=bool)
     valid_bool[valid_ind] = True
@@ -78,12 +83,14 @@ if __name__ == '__main__':
     scheduler = optim.lr_scheduler.MultiStepLR(optimizer, config.lr_changes_list, gamma=config.gamma, last_epoch=-1)
 
     model.log = Log(names=['loss'])
-    
+    print("MAX EPOCHS", Config.max_epochs)    
     for epoch_num in range(Config.max_epochs):
         
         model.train()
         N=len(trainloader)
         for it, (batch,lbls,_) in enumerate(trainloader):
+            batch = batch[:, [0, 2], :]
+            lbls = lbls[:, [0, 2], :]
             
             if it%10==0:
                 print('train ' + str(it) + '/' + str(N))
@@ -119,6 +126,8 @@ if __name__ == '__main__':
                 if it%10==0:
                     print('valid ' + str(it) + '/' + str(N))
                 
+                batch = batch[:, [0, 2], :]
+                lbls = lbls[:, [0, 2], :]
                 batch=batch.to(device)
                 lbls=lbls.to(device)
                 

@@ -10,4 +10,4 @@
 #SBATCH --cpus-per-task 1
 
 pwd
-python3 retrieve_data.py 
+python3 retrieve_validation.py 

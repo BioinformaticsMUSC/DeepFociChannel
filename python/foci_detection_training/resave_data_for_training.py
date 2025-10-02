@@ -30,7 +30,7 @@ dst_hdf5_file = '../../data_zenodo/part2_resaved/foci_detection.hdf5'
 
 
 img_filenames = glob(src_path + '/**/data_53BP1.tif', recursive=True)
-
+print(img_filenames)
 
 resized_img_size = [505, 681, 48] #image is resized to this size
 
@@ -114,9 +114,9 @@ with h5py.File(dst_hdf5_file, "w") as hdf5:
         
         
         name = os.path.normpath(img_filename).replace(os.path.normpath(src_path),'').replace('data_53BP1.tif','')
-        
-        
-        
+        print(f"Generated name: '{name}'")
+        print(f"Will create keys: '{name}data' and '{name}mask'") 
+         
         
         hdf5.create_dataset(name + 'mask', data=mask, chunks=(128,128,48,3), compression="gzip", compression_opts=2)
         hdf5.create_dataset(name + 'data', data=img, chunks=(128,128,48,3), compression="gzip", compression_opts=2)

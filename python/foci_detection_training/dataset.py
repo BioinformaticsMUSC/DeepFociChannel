@@ -143,7 +143,7 @@ if __name__ == '__main__':
     
     loader = Dataset(hdf5_filename=config.hdf5_filename, filenames=train_filenames, split='train', crop_size=config.crop_size)
     trainloader= data.DataLoader(loader, batch_size=config.train_batch_size, num_workers=config.train_num_workers, shuffle=True,drop_last=True)
-    
+    print(train_filenames)    
     
     for i,(img,mask,filenames) in enumerate(trainloader):
         

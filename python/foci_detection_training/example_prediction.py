@@ -14,9 +14,9 @@ from utils.mat2gray import mat2gray
 from evaluate_detections import detect
 
 
-folder_name_to_evaluate = 'C:\\Data\\Vicar\\foky_final_cleaning\\DeepFoci\\data_zenodo\\part2\\NHDF\\NHDF_30min PI\\IR 0,5Gy_30min PI\\0003\\'
+folder_name_to_evaluate = '/scratch/lutsky/deepfoci/DeepFociChannel/data_zenodo/part2/IR 0,5Gy_30min PI/0003/'
 
-detection_channel = 2 # red 0, green 1, red and green 2
+detection_channel = 1 # red 0, green 1, red and green 2
 
 
 resized_img_size = [505, 681, 48] #image is resized to this size
@@ -25,7 +25,7 @@ normalization_percentile = 0.0001  #image is normalized into this percentile ran
 
 crop_size = [96,96]
 
-model = torch.load('detection_model.pt')
+model = torch.load('./detection_model.pt', weights_only=False)
 
 
 device = torch.device("cuda:0")
@@ -36,7 +36,6 @@ img_filename = folder_name_to_evaluate + '/data_53BP1.tif'
 
 img = []
 img.append(imread(img_filename))
-img.append(imread(img_filename.replace('53BP1','gH2AX')))
 img.append(imread(img_filename.replace('53BP1','DAPI')))
 
 img = np.stack(img,axis=3)
@@ -83,14 +82,20 @@ postprocessing_params = model.postprocessing_params[detection_channel]
 detected_points = detect(res[detection_channel,:,:],postprocessing_params['T'],postprocessing_params['h'],postprocessing_params['d'])
 detected_points = np.array(detected_points)
 
+image = mat2gray(np.transpose(np.max(img, axis=3), [1, 2, 0]))
 
-plt.imshow(mat2gray(np.transpose(np.max(img,axis=3),[1,2,0])))
+# Pad to RGB
+if image.shape[2] == 2:
+    image = np.concatenate([image, np.zeros((*image.shape[:2], 1))], axis=2)
+
+plt.imshow(image)
 plt.show()
+plt.savefig("image.png")
 
 plt.imshow(np.max(res[0,:,:,:],axis=2))
 plt.plot(detected_points[:,1],detected_points[:,0],'r.')
 plt.show()
-
+plt.savefig("image_results.png")
 
 
 

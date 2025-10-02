@@ -27,13 +27,19 @@ def detect(img, T, h, d):
 
 
 def evaluate_detections_all(T, h, d, filenames_masks, filenames_results, evaluate_index):
-    
+    print(T, h, d)
+    print(filenames_masks)
+    print(filenames_results)
+    print(evaluate_index) 
     
     dices = []
     for file_num, (filename_result, filename_mask) in enumerate(zip(filenames_results,filenames_masks)):
-    
-        res = imread(filename_result,key = slice(None))[:,evaluate_index,:,:]
-        gt = imread(filename_mask,key = slice(None))[:,evaluate_index,:,:]
+        res = imread(filename_result, key = slice(None))
+        res = res.reshape(res.shape[0] // 2, 2, res.shape[1], res.shape[2]) 
+        res = res[:,evaluate_index,:,:]
+        gt = imread(filename_mask,key = slice(None))
+        gt = gt.reshape(gt.shape[0] // 2, 2, gt.shape[1], gt.shape[2])
+        gt = gt[:,evaluate_index,:,:]
         
         res = np.transpose(res,[1, 2, 0])
         gt = np.transpose(gt,[1, 2, 0])
